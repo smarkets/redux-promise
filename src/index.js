@@ -7,46 +7,43 @@ function isPromise(val) {
 
 export default function promiseMiddleware({ dispatch }) {
   return next => action => {
-    if (!isFSA(action)) {
-      return isPromise(action)
-        ? action.then(dispatch)
-        : next(action);
+    if (isPromise(action)) {
+      return action.then(dispatch);
+    } else if (!isFSA(action) || !isPromise(action.payload)) {
+      return next(action);
     }
 
-    if (isPromise(action.payload)) {
-      const sequenceId = uniqueId();
+    const sequenceId = uniqueId();
 
-      dispatch({
+    dispatch({
+      ...action,
+      payload: undefined,
+      sequence: {
+        type: 'start',
+        id: sequenceId
+      }
+    });
+
+    action.payload.then(
+      result => dispatch({
         ...action,
-        payload: undefined,
+        payload: result,
         sequence: {
-          type: 'start',
+          type: 'next',
           id: sequenceId
         }
-      });
+      }),
+      error => dispatch({
+        ...action,
+        payload: error,
+        error: true,
+        sequence: {
+          type: 'next',
+          id: sequenceId
+        }
+      })
+    );
 
-      action.payload.then(
-        result => dispatch({
-          ...action,
-          payload: result,
-          sequence: {
-            type: 'next',
-            id: sequenceId
-          }
-        }),
-        error => dispatch({
-          ...action,
-          payload: error,
-          error: true,
-          sequence: {
-            type: 'next',
-            id: sequenceId
-          }
-        })
-      );
-      return action.payload;
-    }
-
-    return next(action);
+    return action.payload;
   };
 }
