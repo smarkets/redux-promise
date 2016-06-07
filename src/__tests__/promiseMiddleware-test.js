@@ -1,4 +1,4 @@
-import promiseMiddleware from '../';
+import promiseMiddleware, { UNCAUGHT_ERROR } from '../';
 import { spy } from 'sinon';
 
 function noop() {}
@@ -101,5 +101,14 @@ describe('promiseMiddleware', () => {
       'here you go',
       'here you go'
     ]);
+  });
+
+  it('dispatches a debug action for failed async functions', async () => {
+    await dispatch(Promise.reject(err)).then(null, () => null);
+    expect(baseDispatch.calledOnce).to.be.true;
+    const { type, payload, error } = baseDispatch.firstCall.args[0];
+    expect(type).to.equal(UNCAUGHT_ERROR);
+    expect(payload).to.equal(err);
+    expect(error).to.be.true;
   });
 });

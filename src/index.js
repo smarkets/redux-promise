@@ -5,10 +5,23 @@ function isPromise(val) {
   return val && typeof val.then === 'function';
 }
 
+export const UNCAUGHT_ERROR = '@@redux-promise/uncaught';
+
+function uncaughtPromise(err) {
+  return {
+    type: UNCAUGHT_ERROR,
+    payload: err,
+    error: true
+  };
+}
+
 export default function promiseMiddleware({ dispatch }) {
   return next => action => {
     if (isPromise(action)) {
-      return action.then(dispatch);
+      return action.then(dispatch, (err) => {
+        dispatch(uncaughtPromise(err));
+        return Promise.reject(err);
+      });
     } else if (!isFSA(action) || !isPromise(action.payload)) {
       return next(action);
     }
