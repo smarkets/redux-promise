@@ -35,6 +35,6 @@
   },
   "dependencies": {
     "flux-standard-action": "^0.6.1",
-    "lodash": "^3.10.0"
+    "lodash": "^4.13.1"
   }
 }

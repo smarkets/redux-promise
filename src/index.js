@@ -1,5 +1,5 @@
 import { isFSA } from 'flux-standard-action';
-import uniqueId from 'lodash/utility/uniqueId';
+import uniqueId from 'lodash/uniqueId';
 
 function isPromise(val) {
   return val && typeof val.then === 'function';
